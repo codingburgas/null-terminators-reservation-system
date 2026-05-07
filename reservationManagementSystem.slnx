@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="reservationManagementSystem.vcxproj" Id="34d5d2c8-d020-492c-81d9-d65c694302a3" />
+</Solution>
