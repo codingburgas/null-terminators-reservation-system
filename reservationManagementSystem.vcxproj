@@ -26,12 +26,21 @@
     <ClCompile Include="libs\imGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="libs\imGui\imgui_tables.cpp" />
     <ClCompile Include="libs\imGui\imgui_widgets.cpp" />
-    <ClCompile Include="src\reservationManagementSystem.cpp" />
+    <ClCompile Include="src\data.cpp" />
+    <ClCompile Include="src\logic.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\presentation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\data.h" />
+    <ClInclude Include="include\logic.h" />
+    <ClInclude Include="include\presentation.h" />
+    <ClInclude Include="libs\imGui\imconfig.h" />
     <ClInclude Include="libs\imGui\imgui.h" />
     <ClInclude Include="libs\imGui\imgui_impl_glfw.h" />
     <ClInclude Include="libs\imGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="libs\imGui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="libs\imGui\imgui_internal.h" />
     <ClInclude Include="libs\imGui\imstb_rectpack.h" />
     <ClInclude Include="libs\imGui\imstb_textedit.h" />
     <ClInclude Include="libs\imGui\imstb_truetype.h" />
@@ -123,11 +132,12 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)libs\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)include;$(ProjectDir)libs;$(ProjectDir)libs\imGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
