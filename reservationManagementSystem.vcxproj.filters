@@ -51,6 +51,9 @@
     <ClCompile Include="src\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\auth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="libs\imGui\imgui.h">
@@ -88,6 +91,9 @@
     </ClInclude>
     <ClInclude Include="libs\imGui\imgui_impl_opengl3.h">
       <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="include\auth.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

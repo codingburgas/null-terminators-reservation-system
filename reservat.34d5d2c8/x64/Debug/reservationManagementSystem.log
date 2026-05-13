@@ -1,15 +1,4 @@
-﻿  imgui.cpp
-  imgui_demo.cpp
-  imgui_draw.cpp
-  imgui_impl_glfw.cpp
-  imgui_impl_opengl3.cpp
-  imgui_tables.cpp
-  imgui_widgets.cpp
-  data.cpp
-  logic.cpp
-  main.cpp
-  presentation.cpp
-  Generating Code...
+﻿  auth.cpp
   reservationManagementSystem.vcxproj -> D:\Programirane\null\null-terminators-reservation-system\x64\Debug\reservationManagementSystem.exe
   'pwsh.exe' is not recognized as an internal or external command,
   operable program or batch file.

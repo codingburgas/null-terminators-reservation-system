@@ -26,12 +26,14 @@
     <ClCompile Include="libs\imGui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="libs\imGui\imgui_tables.cpp" />
     <ClCompile Include="libs\imGui\imgui_widgets.cpp" />
+    <ClCompile Include="src\auth.cpp" />
     <ClCompile Include="src\data.cpp" />
     <ClCompile Include="src\logic.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\presentation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\auth.h" />
     <ClInclude Include="include\data.h" />
     <ClInclude Include="include\logic.h" />
     <ClInclude Include="include\presentation.h" />

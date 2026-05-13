@@ -1,4 +1,5 @@
 #include "presentation.h"
+#include "auth.h"           // <-- NEW
 #include "imgui.h"
 #include "logic.h"
 #include <cstdio>
@@ -11,7 +12,15 @@ void renderUI() {
     static int searchResultIdx = -2;
     auto& reservations = getReservations();
 
-    ImGui::Begin("Reservation Management System");
+    // Show the logged-in user in the title bar
+    AuthSession& session = getAuthSession();
+    char title[128];
+    snprintf(title, sizeof(title), "Reservation Management System  |  %s %s (%s)",
+        session.currentUser.firstName.c_str(),
+        session.currentUser.lastName.c_str(),
+        session.currentUser.role == UserRole::Admin ? "Admin" : "Guest");
+
+    ImGui::Begin(title);
 
     if (ImGui::Button("Sort by Name")) {
         sortByName();
@@ -34,9 +43,11 @@ void renderUI() {
         ImGui::TableSetupColumn("Guests");
         ImGui::TableHeadersRow();
 
-        for (int i = 0; i < reservations.size(); i++) {
+        for (int i = 0; i < (int)reservations.size(); i++) {
             ImGui::TableNextRow();
-            if (i == searchResultIdx) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImGui::GetColorU32(ImVec4(0.3f, 0.7f, 0.3f, 0.5f)));
+            if (i == searchResultIdx)
+                ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                    ImGui::GetColorU32(ImVec4(0.3f, 0.7f, 0.3f, 0.5f)));
 
             ImGui::TableSetColumnIndex(0); ImGui::Text("%d", reservations[i].id);
             ImGui::TableSetColumnIndex(1); ImGui::Text("%s", reservations[i].customerName);
@@ -48,6 +59,7 @@ void renderUI() {
 
     ImGui::End();
 }
+
 void runApplication() {
     if (!glfwInit()) return;
     GLFWwindow* window = glfwCreateWindow(1280, 720, "Reservation System", NULL, NULL);
@@ -64,7 +76,17 @@ void runApplication() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        renderUI(); // Извикваме рисуването на интерфейса [cite: 151]
+        // ── AUTH GATE ──────────────────────────────────────────────────────
+        // Show the login/register screen until the user is authenticated.
+        // Once renderAuthUI() returns true the session is marked loggedIn
+        // and we switch to the main app UI permanently.
+        if (!getAuthSession().loggedIn) {
+            renderAuthUI();     // <-- NEW: show login / register
+        }
+        else {
+            renderUI();         // existing reservation UI
+        }
+        // ──────────────────────────────────────────────────────────────────
 
         ImGui::Render();
         glClear(GL_COLOR_BUFFER_BIT);
@@ -72,7 +94,6 @@ void runApplication() {
         glfwSwapBuffers(window);
     }
 
-    // Почистване
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

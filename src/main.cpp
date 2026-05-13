@@ -1,8 +1,10 @@
 #include "data.h"
 #include "presentation.h"
+#include "auth.h"           // <-- NEW
 
 int main() {
-    initData();         // 1. Подготвя данните [cite: 147]
-    runApplication();   // 2. Стартира графичния интерфейс и цикъла
-    return 0;           // 3. Излиза чистo
+    initData();             // 1. Prepare reservation data
+    initAuth();             // 2. Seed the default admin account  <-- NEW
+    runApplication();       // 3. Start the GLFW + ImGui loop
+    return 0;
 }
