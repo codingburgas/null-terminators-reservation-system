@@ -8,6 +8,9 @@ struct Reservation {
     char customerName[64];
     int tableNumber;
     int guests;
+    char roomType[64];
+    char packageName[64];
+    float totalBill;
 };
 
 // Прототипи на функции [cite: 135]
