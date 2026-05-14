@@ -47,6 +47,11 @@
     <ClInclude Include="libs\imGui\imstb_textedit.h" />
     <ClInclude Include="libs\imGui\imstb_truetype.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="glfw3.dll">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -141,6 +146,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(ProjectDir)glfw3.dll" "$(OutDir)glfw3.dll"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

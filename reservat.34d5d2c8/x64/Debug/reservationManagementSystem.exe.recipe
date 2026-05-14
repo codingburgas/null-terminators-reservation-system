@@ -5,7 +5,11 @@
       <FullPath>C:\Users\ivanl\Desktop\c++\null-terminators-reservation-system\x64\Debug\reservationManagementSystem.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
-  <ContentFiles />
+  <ContentFiles>
+    <ContentFile>
+      <FullPath>C:\Users\ivanl\Desktop\c++\null-terminators-reservation-system\glfw3.dll</FullPath>
+    </ContentFile>
+  </ContentFiles>
   <SatelliteDlls />
   <NonRecipeFileRefs />
 </Project>

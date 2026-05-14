@@ -3,4 +3,5 @@
 void renderUI();
 void runApplication();
 void setupModernTheme();
+void renderGuestUI();
 #endif
