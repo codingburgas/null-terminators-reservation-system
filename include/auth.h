@@ -31,6 +31,9 @@ void        initAuth();
 // Returns the global auth session (loggedIn = true after successful login)
 AuthSession& getAuthSession();
 
+// Logs out the current user and clears all login form fields
+void         logoutAuth();
+
 // Renders the full Login / Register ImGui window.
 // Returns true once the user has successfully logged in.
 bool        renderAuthUI();

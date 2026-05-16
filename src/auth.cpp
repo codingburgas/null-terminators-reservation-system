@@ -75,6 +75,22 @@ static void clearMessages() {
     s_successMsg[0] = '\0';
 }
 
+void logoutAuth() {
+    s_session.loggedIn = false;
+    s_session.currentUser = UserAccount{};
+    s_loginEmail[0]  = '\0';
+    s_loginPw[0]     = '\0';
+    s_regFirst[0]    = '\0';
+    s_regLast[0]     = '\0';
+    s_regEmail[0]    = '\0';
+    s_regPw[0]       = '\0';
+    s_regPw2[0]      = '\0';
+    s_regRole        = 0;
+    s_errorMsg[0]    = '\0';
+    s_successMsg[0]  = '\0';
+    s_tab            = 0;
+}
+
 // ─── Password strength ──────────────────────────────────────────────────────
 
 static int passwordStrength(const char* pw) {

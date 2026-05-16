@@ -9,6 +9,7 @@
 #include <GLFW/glfw3.h>
 #include <ctime>
 #include <string>
+#include <cstdarg>
 
 void setupModernTheme() {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -67,7 +68,16 @@ void renderUI() {
 
     AuthSession& session = getAuthSession();
     ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.6f, 1.0f), "System Version 2.1 | Logged in as: %s", session.currentUser.role == UserRole::Admin ? "Admin" : "Guest");
-
+    ImGui::SameLine();
+    float logoffWidth = 90.0f;
+    ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - logoffWidth);
+    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.00f));
+    if (ImGui::Button("Log Off", ImVec2(logoffWidth, 0))) {
+        logoutAuth();
+    }
+    ImGui::PopStyleColor(3);
 
     ImGui::PushStyleColor(ImGuiCol_Separator, ImVec4(0.15f, 0.25f, 0.45f, 0.60f));
     ImGui::Separator();
@@ -217,6 +227,7 @@ void renderGuestUI() {
     strftime(endDate, sizeof(endDate), "%d/%m/%Y", endNow);
 
     static bool useSpecificDates = false;
+    static bool showConfirmModal = false;
 
     auto& reservations = getReservations();
     AuthSession& session = getAuthSession();
@@ -232,6 +243,16 @@ void renderGuestUI() {
     ImGui::SetWindowFontScale(1.0f);
 
     ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Status: Online");
+    ImGui::SameLine();
+    float logoffWidth = 90.0f;
+    ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - logoffWidth);
+    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.00f));
+    if (ImGui::Button("Log Off##guest", ImVec2(logoffWidth, 0))) {
+        logoutAuth();
+    }
+    ImGui::PopStyleColor(3);
     ImGui::Separator();
     ImGui::Spacing();
 
@@ -327,10 +348,73 @@ void renderGuestUI() {
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 15);
     if (ImGui::Button("CONFIRM RESERVATION", ImVec2(-1, 50))) {
-        if (strlen(gName) == 0) {
-
+        if (strlen(gName) != 0) {
+            showConfirmModal = true;
+            ImGui::OpenPopup("Confirm Reservation");
         }
-        else {
+    }
+
+    // ── Confirmation Modal ─────────────────────────────────────────────────
+    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Always);
+    if (ImGui::BeginPopupModal("Confirm Reservation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+
+        ImGui::Spacing();
+        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Reservation Summary").x) * 0.5f);
+        ImGui::TextColored(ImVec4(1.0f, 0.84f, 0.0f, 1.0f), "Reservation Summary");
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::TextDisabled("GUEST");
+        ImGui::Text("%s", gName);
+        ImGui::Spacing();
+
+        if (ImGui::BeginTable("ConfirmTable", 2, ImGuiTableFlags_None)) {
+            ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, 130.0f);
+            ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
+
+            auto row = [](const char* label, const char* fmt, ...) {
+                ImGui::TableNextRow();
+                ImGui::TableSetColumnIndex(0); ImGui::TextDisabled("%s", label);
+                ImGui::TableSetColumnIndex(1);
+                char buf[128];
+                va_list args; va_start(args, fmt);
+                vsnprintf(buf, sizeof(buf), fmt, args);
+                va_end(args);
+                ImGui::TextUnformatted(buf);
+            };
+
+            row("Phone:",       "%s", strlen(gPhone) ? gPhone : "-");
+            row("Email:",       "%s", strlen(gEmail) ? gEmail : "-");
+            row("Room Type:",   "%s", roomTypes[roomType]);
+            row("Check-in:",    "%s", startDate);
+            row("Check-out:",   "%s", endDate);
+            row("Nights:",      "%d", gDays);
+            row("Guests:",      "%d", gGuests);
+            row("Rooms:",       "%d", gRooms);
+            row("Beds:",        "%d", gBeds);
+
+            ImGui::EndTable();
+        }
+
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+
+        ImGui::TextDisabled("TOTAL BILL");
+        ImGui::SetWindowFontScale(1.6f);
+        ImGui::TextColored(ImVec4(1.0f, 0.84f, 0.0f, 1.0f), "$ %.2f", totalBill);
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::Spacing();
+
+        float btnW = (ImGui::GetContentRegionAvail().x - 8.0f) * 0.5f;
+
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.10f, 0.28f, 0.10f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.15f, 0.45f, 0.15f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.06f, 0.18f, 0.06f, 1.0f));
+        if (ImGui::Button("Book Now", ImVec2(btnW, 40))) {
             Reservation newRes;
             newRes.id = (int)reservations.size() + 1;
             strncpy_s(newRes.customerName, gName, sizeof(newRes.customerName) - 1);
@@ -338,15 +422,28 @@ void renderGuestUI() {
             newRes.guests = gDays;
             addReservation(newRes);
 
-            gName[0] = '\0';
-            gPhone[0] = '\0';
-            gEmail[0] = '\0';
-            gDays = 1;
-            gGuests = 1;
-            gRooms = 1;
-            gBeds = 1;
+            gName[0] = '\0'; gPhone[0] = '\0'; gEmail[0] = '\0';
+            gDays = 1; gGuests = 1; gRooms = 1; gBeds = 1;
+            showConfirmModal = false;
+            ImGui::CloseCurrentPopup();
         }
+        ImGui::PopStyleColor(3);
+
+        ImGui::SameLine(0, 8);
+
+        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
+        if (ImGui::Button("Cancel", ImVec2(btnW, 40))) {
+            showConfirmModal = false;
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::PopStyleColor(3);
+
+        ImGui::Spacing();
+        ImGui::EndPopup();
     }
+    // ──────────────────────────────────────────────────────────────────────
 
     ImGui::EndChild();
 
