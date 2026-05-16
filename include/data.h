@@ -13,8 +13,8 @@ struct Reservation {
     float totalBill;
 };
 
-// Прототипи на функции [cite: 135]
 void initData();
 std::vector<Reservation>& getReservations();
 void addReservation(const Reservation& res);
+void deleteReservation(int id);
 #endif

@@ -12,15 +12,15 @@ void sortByName() {
     }
 }
 
-int findReservationByName(const char* name) {
+int findReservationById(int id) {
     auto& res = getReservations();
     for (size_t i = 0; i < res.size(); i++) {
-        if (strcmp(res[i].customerName, name) == 0) return (int)i;
+        if (res[i].id == id) return (int)i;
     }
     return -1;
 }
 
 int calculateTotalGuestsRecursive(const std::vector<Reservation>& res, int index) {
-    if (index >= res.size()) return 0;
+    if (index >= (int)res.size()) return 0;
     return res[index].guests + calculateTotalGuestsRecursive(res, index + 1);
 }

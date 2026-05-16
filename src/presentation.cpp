@@ -1,15 +1,16 @@
 #include "presentation.h"
-#include "auth.h"           // <-- NEW
+#include "auth.h"
+#include "data.h"
 #include "imgui.h"
 #include "logic.h"
 #include <cstdio>
+#include <cstdarg>
 #define _CRT_SECURE_NO_WARNINGS
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <GLFW/glfw3.h>
 #include <ctime>
 #include <string>
-#include <cstdarg>
 
 void setupModernTheme() {
     ImGuiStyle& style = ImGui::GetStyle();
@@ -52,8 +53,10 @@ void renderUI() {
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
 
-    static char searchBuf[64] = "";
-    static int searchResultIdx = -2;
+    static int  searchResultIdx = -2;
+    static int  searchId        = 0;
+    static int  deleteTargetId  = -1;
+    static char deleteTargetName[64] = "";
     auto& reservations = getReservations();
 
     ImGui::Begin("Hotel Management System", nullptr, window_flags);
@@ -84,10 +87,9 @@ void renderUI() {
     ImGui::PopStyleColor();
     ImGui::Spacing();
 
-    // --- Stats upper cards 
+    // --- Stats upper cards ---
     ImGui::Columns(3, "stats", false);
 
-  
     ImGui::BeginChild("Stat1", ImVec2(0, 80), true, ImGuiWindowFlags_None);
     ImGui::Text("TOTAL RESERVATIONS");
     ImGui::SetWindowFontScale(1.9f);
@@ -119,53 +121,48 @@ void renderUI() {
     ImGui::Columns(2, "mainLayout", true);
     ImGui::SetColumnWidth(0, 300);
 
-    // Left: Quick actions + search
+    // Left: Quick actions + search by ID
     ImGui::Text("QUICK ACTIONS");
     if (ImGui::Button("Sort Guest List", ImVec2(-1, 40))) {
         sortByName();
     }
 
     ImGui::Spacing();
-    ImGui::Text("Search Guest:");
-
+    ImGui::Text("Search by ID:");
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 12));
     ImGui::SetNextItemWidth(-1);
-    ImGui::InputTextWithHint("##search", "Name...", searchBuf, 64);
-    if (searchBuf[0] != '\0') {
-        searchBuf[0] = toupper(searchBuf[0]);
-    }
+    ImGui::InputInt("##searchId", &searchId, 0, 0);
+    if (searchId < 0) searchId = 0;
     ImGui::PopStyleVar();
 
     ImGui::Spacing();
     if (ImGui::Button("FIND", ImVec2(-1, 45))) {
-        searchResultIdx = findReservationByName(searchBuf);
+        searchResultIdx = findReservationById(searchId);
     }
-
     if (ImGui::Button("RESET", ImVec2(-1, 35))) {
         searchResultIdx = -2;
-        searchBuf[0] = '\0';
+        searchId = 0;
     }
 
     ImGui::NextColumn();
 
     // Right: Table with reservations
     ImGui::Text("CURRENT OCCUPANCY");
-
     ImGui::SetWindowFontScale(1.1f);
 
     ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.15f, 0.25f, 0.45f, 0.30f));
-    if (ImGui::BeginTable("GuestTable", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, -10))) {
-        ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 35.0f);
+    if (ImGui::BeginTable("GuestTable", 8, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, -10))) {
+        ImGui::TableSetupColumn("ID",            ImGuiTableColumnFlags_WidthFixed,   35.0f);
         ImGui::TableSetupColumn("Customer Name", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthFixed, 50.0f);
-        ImGui::TableSetupColumn("Period", ImGuiTableColumnFlags_WidthFixed, 70.0f);
-        ImGui::TableSetupColumn("Type", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-        ImGui::TableSetupColumn("Package", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-        ImGui::TableSetupColumn("Bill", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-
+        ImGui::TableSetupColumn("Room",          ImGuiTableColumnFlags_WidthFixed,   50.0f);
+        ImGui::TableSetupColumn("Period",        ImGuiTableColumnFlags_WidthFixed,   70.0f);
+        ImGui::TableSetupColumn("Type",          ImGuiTableColumnFlags_WidthFixed,   80.0f);
+        ImGui::TableSetupColumn("Package",       ImGuiTableColumnFlags_WidthFixed,   80.0f);
+        ImGui::TableSetupColumn("Bill",          ImGuiTableColumnFlags_WidthFixed,   80.0f);
+        ImGui::TableSetupColumn("Action",        ImGuiTableColumnFlags_WidthFixed,   60.0f);
         ImGui::TableHeadersRow();
 
-        for (int i = 0; i < reservations.size(); i++) {
+        for (int i = 0; i < (int)reservations.size(); i++) {
             ImGui::TableNextRow(0, 32.0f);
 
             if (i == searchResultIdx)
@@ -178,10 +175,64 @@ void renderUI() {
             ImGui::TableSetColumnIndex(4); ImGui::Text("Deluxe");
             ImGui::TableSetColumnIndex(5); ImGui::Text("All Incl.");
             ImGui::TableSetColumnIndex(6); ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.00f), "$ %.2f", (float)reservations[i].guests * 150.0f);
+
+            ImGui::TableSetColumnIndex(7);
+            ImGui::PushID(i);
+            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
+            if (ImGui::SmallButton("Delete")) {
+                deleteTargetId = reservations[i].id;
+                strncpy_s(deleteTargetName, reservations[i].customerName, sizeof(deleteTargetName) - 1);
+                ImGui::OpenPopup("Confirm Delete");
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::PopID();
         }
+
+        // ── Delete confirmation modal ──────────────────────────────────────
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Always);
+        if (ImGui::BeginPopupModal("Confirm Delete", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+            ImGui::Spacing();
+            ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Delete Reservation?").x) * 0.5f);
+            ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "Delete Reservation?");
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+            ImGui::Text("Guest:"); ImGui::SameLine();
+            ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "%s", deleteTargetName);
+            ImGui::Spacing();
+            ImGui::TextDisabled("This action cannot be undone.");
+            ImGui::Spacing();
+
+            float btnW = (ImGui::GetContentRegionAvail().x - 8.0f) * 0.5f;
+
+            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
+            if (ImGui::Button("Delete", ImVec2(btnW, 36))) {
+                deleteReservation(deleteTargetId);
+                if (searchResultIdx >= 0) searchResultIdx = -2;
+                deleteTargetId = -1;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::PopStyleColor(3);
+
+            ImGui::SameLine(0, 8);
+            if (ImGui::Button("Cancel", ImVec2(btnW, 36))) {
+                deleteTargetId = -1;
+                ImGui::CloseCurrentPopup();
+            }
+            ImGui::Spacing();
+            ImGui::EndPopup();
+        }
+        // ──────────────────────────────────────────────────────────────────
+
         ImGui::EndTable();
     }
-    ImGui::PopStyleColor(); 
+    ImGui::PopStyleColor();
     ImGui::SetWindowFontScale(1.0f);
 
     ImGui::End();
@@ -227,7 +278,6 @@ void renderGuestUI() {
     strftime(endDate, sizeof(endDate), "%d/%m/%Y", endNow);
 
     static bool useSpecificDates = false;
-    static bool showConfirmModal = false;
 
     auto& reservations = getReservations();
     AuthSession& session = getAuthSession();
@@ -243,16 +293,6 @@ void renderGuestUI() {
     ImGui::SetWindowFontScale(1.0f);
 
     ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Status: Online");
-    ImGui::SameLine();
-    float logoffWidth = 90.0f;
-    ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - logoffWidth);
-    ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.00f));
-    ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.00f));
-    if (ImGui::Button("Log Off##guest", ImVec2(logoffWidth, 0))) {
-        logoutAuth();
-    }
-    ImGui::PopStyleColor(3);
     ImGui::Separator();
     ImGui::Spacing();
 
@@ -348,73 +388,10 @@ void renderGuestUI() {
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 15);
     if (ImGui::Button("CONFIRM RESERVATION", ImVec2(-1, 50))) {
-        if (strlen(gName) != 0) {
-            showConfirmModal = true;
-            ImGui::OpenPopup("Confirm Reservation");
+        if (strlen(gName) == 0) {
+
         }
-    }
-
-    // ── Confirmation Modal ─────────────────────────────────────────────────
-    ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-    ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-    ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Always);
-    if (ImGui::BeginPopupModal("Confirm Reservation", nullptr, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-
-        ImGui::Spacing();
-        ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize("Reservation Summary").x) * 0.5f);
-        ImGui::TextColored(ImVec4(1.0f, 0.84f, 0.0f, 1.0f), "Reservation Summary");
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ImGui::TextDisabled("GUEST");
-        ImGui::Text("%s", gName);
-        ImGui::Spacing();
-
-        if (ImGui::BeginTable("ConfirmTable", 2, ImGuiTableFlags_None)) {
-            ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, 130.0f);
-            ImGui::TableSetupColumn("##value", ImGuiTableColumnFlags_WidthStretch);
-
-            auto row = [](const char* label, const char* fmt, ...) {
-                ImGui::TableNextRow();
-                ImGui::TableSetColumnIndex(0); ImGui::TextDisabled("%s", label);
-                ImGui::TableSetColumnIndex(1);
-                char buf[128];
-                va_list args; va_start(args, fmt);
-                vsnprintf(buf, sizeof(buf), fmt, args);
-                va_end(args);
-                ImGui::TextUnformatted(buf);
-            };
-
-            row("Phone:",       "%s", strlen(gPhone) ? gPhone : "-");
-            row("Email:",       "%s", strlen(gEmail) ? gEmail : "-");
-            row("Room Type:",   "%s", roomTypes[roomType]);
-            row("Check-in:",    "%s", startDate);
-            row("Check-out:",   "%s", endDate);
-            row("Nights:",      "%d", gDays);
-            row("Guests:",      "%d", gGuests);
-            row("Rooms:",       "%d", gRooms);
-            row("Beds:",        "%d", gBeds);
-
-            ImGui::EndTable();
-        }
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        ImGui::TextDisabled("TOTAL BILL");
-        ImGui::SetWindowFontScale(1.6f);
-        ImGui::TextColored(ImVec4(1.0f, 0.84f, 0.0f, 1.0f), "$ %.2f", totalBill);
-        ImGui::SetWindowFontScale(1.0f);
-        ImGui::Spacing();
-
-        float btnW = (ImGui::GetContentRegionAvail().x - 8.0f) * 0.5f;
-
-        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.10f, 0.28f, 0.10f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.15f, 0.45f, 0.15f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.06f, 0.18f, 0.06f, 1.0f));
-        if (ImGui::Button("Book Now", ImVec2(btnW, 40))) {
+        else {
             Reservation newRes;
             newRes.id = (int)reservations.size() + 1;
             strncpy_s(newRes.customerName, gName, sizeof(newRes.customerName) - 1);
@@ -422,28 +399,15 @@ void renderGuestUI() {
             newRes.guests = gDays;
             addReservation(newRes);
 
-            gName[0] = '\0'; gPhone[0] = '\0'; gEmail[0] = '\0';
-            gDays = 1; gGuests = 1; gRooms = 1; gBeds = 1;
-            showConfirmModal = false;
-            ImGui::CloseCurrentPopup();
+            gName[0] = '\0';
+            gPhone[0] = '\0';
+            gEmail[0] = '\0';
+            gDays = 1;
+            gGuests = 1;
+            gRooms = 1;
+            gBeds = 1;
         }
-        ImGui::PopStyleColor(3);
-
-        ImGui::SameLine(0, 8);
-
-        ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
-        if (ImGui::Button("Cancel", ImVec2(btnW, 40))) {
-            showConfirmModal = false;
-            ImGui::CloseCurrentPopup();
-        }
-        ImGui::PopStyleColor(3);
-
-        ImGui::Spacing();
-        ImGui::EndPopup();
     }
-    // ──────────────────────────────────────────────────────────────────────
 
     ImGui::EndChild();
 
