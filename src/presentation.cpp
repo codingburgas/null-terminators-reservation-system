@@ -169,23 +169,34 @@ void renderUI() {
                 ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0, ImColor(50, 150, 50, 180));
 
             ImGui::TableSetColumnIndex(0); ImGui::Text("%d", reservations[i].id);
+
+            // Показва: "Име Фамилия (имейл)"
             ImGui::TableSetColumnIndex(1); ImGui::Text("%s", reservations[i].customerName);
+
             ImGui::TableSetColumnIndex(2); ImGui::Text("%d", reservations[i].tableNumber);
             ImGui::TableSetColumnIndex(3); ImGui::Text("%d nights", reservations[i].guests);
-            ImGui::TableSetColumnIndex(4); ImGui::Text("Deluxe");
-            ImGui::TableSetColumnIndex(5); ImGui::Text("All Incl.");
-            ImGui::TableSetColumnIndex(6); ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.00f), "$ %.2f", (float)reservations[i].guests * 150.0f);
+
+            // РЕАЛЕН ТИП СТАЯ (Вместо статичното "Deluxe")
+            ImGui::TableSetColumnIndex(4); ImGui::Text("%s", reservations[i].roomType);
+
+            // РЕАЛЕН ПАКЕТ (Вместо статичното "All Incl.")
+            ImGui::TableSetColumnIndex(5); ImGui::Text("%s", reservations[i].packageName);
+
+            // РЕАЛНА ЦЕНА О Т ДАННИТЕ (Вместо изкуственото умножение по 150)
+            ImGui::TableSetColumnIndex(6); ImGui::TextColored(ImVec4(0.0f, 1.0f, 0.0f, 1.00f), "$ %.2f", reservations[i].totalBill);
 
             ImGui::TableSetColumnIndex(7);
             ImGui::PushID(i);
-            ImGui::PushStyleColor(ImGuiCol_Button,        ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
+
             if (ImGui::SmallButton("Delete")) {
                 deleteTargetId = reservations[i].id;
                 strncpy_s(deleteTargetName, reservations[i].customerName, sizeof(deleteTargetName) - 1);
                 ImGui::OpenPopup("Confirm Delete");
             }
+
             ImGui::PopStyleColor(3);
             ImGui::PopID();
         }
@@ -289,10 +300,22 @@ void renderGuestUI() {
     ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.00f, 0.84f, 0.00f, 1.00f));
     ImGui::SetWindowFontScale(1.4f);
     ImGui::Text("HOTEL NullTerminators - GUEST PORTAL");
-    ImGui::PopStyleColor();
     ImGui::SetWindowFontScale(1.0f);
+    ImGui::PopStyleColor();
 
     ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Status: Online");
+
+    ImGui::SameLine();
+    float logoffWidth = 90.0f;
+    ImGui::SetCursorPosX(ImGui::GetContentRegionMax().x - logoffWidth);
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.08f, 0.08f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.00f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.20f, 0.05f, 0.05f, 1.00f));
+    if (ImGui::Button("Log Off##Guest", ImVec2(logoffWidth, 0))) {
+        logoutAuth();
+    }
+    ImGui::PopStyleColor(3);
+
     ImGui::Separator();
     ImGui::Spacing();
 
@@ -330,6 +353,58 @@ void renderGuestUI() {
 
     ImGui::Columns(1);
     ImGui::Spacing();
+    //-----------------------------------------------------
+
+    bool hasExistingReservation = false;
+    Reservation existingRes;
+
+    std::string loggedInName = session.currentUser.firstName + " " + session.currentUser.lastName;
+    std::string loggedInEmail = session.currentUser.email;
+
+    for (const auto& res : reservations) {
+        std::string resName(res.customerName);
+
+        // Модерна и сигурна проверка: проверяваме дали в записаното име се съдържа ИМЕТО или ИМЕЙЛА на логнатия юзър
+        if (resName.find(loggedInName) != std::string::npos || resName.find(loggedInEmail) != std::string::npos) {
+            hasExistingReservation = true;
+            existingRes = res;
+            break;
+        }
+    }
+
+    // Ако намерим активна резервация, я показваме на госта
+    if (hasExistingReservation) {
+        ImGui::Text("YOUR CURRENT RESERVATION");
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0.10f, 0.20f, 0.15f, 1.00f)); // Леко зелен фонов цвят за активна резервация
+        ImGui::BeginChild("ActiveReservationCard", ImVec2(0, 90), true);
+
+        ImGui::Columns(5, "resInfo", false);
+
+        ImGui::TextDisabled("RESERVATION'S NAME");
+        ImGui::Text("%s", gName);
+        ImGui::NextColumn();
+
+        ImGui::TextDisabled("ROOM NUMBER");
+        ImGui::Text("Room %d", existingRes.tableNumber);
+        ImGui::NextColumn();
+
+        ImGui::TextDisabled("TOTAL PAID");
+        ImGui::TextColored(ImVec4(1.00f, 0.84f, 0.00f, 1.00f), "$ %.2f", existingRes.totalBill);
+        ImGui::NextColumn();
+
+        ImGui::TextDisabled("DURATION");
+        ImGui::Text("from %s to %s", startDate, endDate);
+        ImGui::NextColumn();
+
+        ImGui::TextDisabled("STATUS");
+        ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "Confirmed & Active");
+
+        ImGui::Columns(1);
+        ImGui::EndChild();
+        ImGui::PopStyleColor();
+        ImGui::Spacing();
+    }
+    // ---------------------------------------------------------------------
 
     // --- BOOKING FORM ---
     ImGui::Text("MAKE A NEW RESERVATION");
@@ -342,7 +417,14 @@ void renderGuestUI() {
     ImGui::Columns(2, "formSplit", false);
 
 	// Personal info on the left
-    ImGui::Text("Personal Information");
+    if (gName[0] == '\0') {
+        std::string fullName = session.currentUser.firstName + " " + session.currentUser.lastName;
+        strncpy_s(gName, fullName.c_str(), sizeof(gName) - 1);
+    }
+    if (gEmail[0] == '\0') {
+        strncpy_s(gEmail, session.currentUser.email.c_str(), sizeof(gEmail) - 1);
+    }
+
     ImGui::InputTextWithHint("##name", "Full Name", gName, 64);
     ImGui::InputTextWithHint("##phone", "Phone Number", gPhone, 32);
     ImGui::InputTextWithHint("##email", "Email Address", gEmail, 64);
@@ -389,17 +471,33 @@ void renderGuestUI() {
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 15);
     if (ImGui::Button("CONFIRM RESERVATION", ImVec2(-1, 50))) {
         if (strlen(gName) == 0) {
-
+            // Може да добавиш съобщение за грешка тук
         }
         else {
             Reservation newRes;
             newRes.id = (int)reservations.size() + 1;
-            strncpy_s(newRes.customerName, gName, sizeof(newRes.customerName) - 1);
-            newRes.tableNumber = (int)reservations.size() + 101;
-            newRes.guests = gDays;
+
+            // 1. Сглобяваме Име + Фамилия + Имейл, за да ги види Админа в неговата таблица
+            std::string realUserData = session.currentUser.firstName + " " +
+                session.currentUser.lastName + " (" +
+                session.currentUser.email + ")";
+            strncpy_s(newRes.customerName, realUserData.c_str(), sizeof(newRes.customerName) - 1);
+
+            newRes.tableNumber = (int)reservations.size() + 101; // Номер на стая
+            newRes.guests = gDays; // Записваме дните (нощувките)
+
+            // 2. Записваме РЕАЛНИЯ тип стая от избраното в комбо бокса
+            strncpy_s(newRes.roomType, roomTypes[roomType], sizeof(newRes.roomType) - 1);
+
+            // 3. Записваме пакета (например "All Incl.")
+            strncpy_s(newRes.packageName, "All Incl.", sizeof(newRes.packageName) - 1);
+
+            // 4. Записваме РЕАЛНАТА крайна сума, която сметнахме горе!
+            newRes.totalBill = totalBill;
+
             addReservation(newRes);
 
-            gName[0] = '\0';
+            // Изчистваме полетата, но gName ще се презареди автоматично от профила
             gPhone[0] = '\0';
             gEmail[0] = '\0';
             gDays = 1;

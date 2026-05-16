@@ -4,7 +4,6 @@
 *.user
 *.userosscache
 *.sln.docview
-*.vcxproj.filters
 *.vcxproj.user
 *.VC.db
 *.VC.opendb
@@ -24,8 +23,6 @@ Win32/
 *.pdb
 *.ilk
 *.exp
-*.lib
-*.dll
 *.obj
 *.o
 
