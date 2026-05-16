@@ -1,4 +1,0 @@
-D:\Programirane\null\null-terminators-reservation-system\x64\Debug\glfw3.dll
-D:\Programirane\null\null-terminators-reservation-system\reservat.34d5d2c8\x64\Debug\reservat.7ADF5958.Up2Date
-C:\Users\ivanl\Desktop\c++\null-terminators-reservation-system\x64\Debug\glfw3.dll
-C:\Users\ivanl\Desktop\c++\null-terminators-reservation-system\reservat.34d5d2c8\x64\Debug\reservat.7ADF5958.Up2Date
