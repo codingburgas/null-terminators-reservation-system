@@ -1,6 +1,69 @@
+# ─── Visual Studio ───────────────────────────────────────────────────────────
 .vs/
-out/
-build/
-bin/
-obj/
+*.suo
 *.user
+*.userosscache
+*.sln.docview
+*.vcxproj.filters
+*.vcxproj.user
+*.VC.db
+*.VC.opendb
+
+# ─── Build Output ─────────────────────────────────────────────────────────────
+x64/
+x86/
+Debug/
+Release/
+Win32/
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.dll
+*.obj
+*.o
+
+# ─── CMake (if ever used alongside MSVC) ─────────────────────────────────────
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+build/
+
+# ─── ImGui ───────────────────────────────────────────────────────────────────
+# Ignore ImGui binaries/generated files but keep source
+imgui.ini
+
+# ─── GLFW ────────────────────────────────────────────────────────────────────
+# If GLFW is built locally, ignore its build artifacts
+glfw/build/
+glfw/CMakeFiles/
+
+# ─── OpenGL / Graphics drivers ───────────────────────────────────────────────
+*.glsl.spv
+
+# ─── Compiler / Linker Intermediates ─────────────────────────────────────────
+*.map
+*.lst
+*.asm
+
+# ─── Windows ─────────────────────────────────────────────────────────────────
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ─── Packages / Dependencies ─────────────────────────────────────────────────
+# NuGet
+packages/
+*.nupkg
+
+# vcpkg
+vcpkg_installed/
+
+# ─── Logs & Crash Dumps ──────────────────────────────────────────────────────
+*.log
+*.dmp
+*.stackdump
