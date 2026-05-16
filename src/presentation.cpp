@@ -327,7 +327,25 @@ void renderGuestUI() {
 
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 15);
     if (ImGui::Button("CONFIRM RESERVATION", ImVec2(-1, 50))) {
-        // Тук ще добавиш логиката за запис в базата
+        if (strlen(gName) == 0) {
+
+        }
+        else {
+            Reservation newRes;
+            newRes.id = (int)reservations.size() + 1;
+            strncpy_s(newRes.customerName, gName, sizeof(newRes.customerName) - 1);
+            newRes.tableNumber = (int)reservations.size() + 101;
+            newRes.guests = gDays;
+            addReservation(newRes);
+
+            gName[0] = '\0';
+            gPhone[0] = '\0';
+            gEmail[0] = '\0';
+            gDays = 1;
+            gGuests = 1;
+            gRooms = 1;
+            gBeds = 1;
+        }
     }
 
     ImGui::EndChild();
