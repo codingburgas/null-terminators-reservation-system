@@ -5,7 +5,6 @@
 
 static std::vector<Reservation> database;
 
-// Helper: format a time_t into DD/MM/YYYY
 static void formatDate(time_t t, char* buf, size_t size) {
     struct tm ts;
     localtime_s(&ts, &t);
