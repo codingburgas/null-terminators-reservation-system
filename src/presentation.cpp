@@ -657,53 +657,59 @@ void renderUI() {
                         deleteTargetId = reservations[i].id;
                         strncpy_s(deleteTargetName, reservations[i].customerName,
                             sizeof(deleteTargetName) - 1);
-                        ImGui::OpenPopup("Confirm Delete");
                     }
                     ImGui::PopStyleColor(3);
                     ImGui::PopID();
                 }
 
-                /* Delete confirmation modal */
-                ImVec2 center = ImGui::GetMainViewport()->GetCenter();
-                ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-                ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Always);
-                if (ImGui::BeginPopupModal("Confirm Delete", nullptr,
-                    ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
-
-                    ImGui::Spacing();
-                    ImGui::SetCursorPosX(
-                        (ImGui::GetContentRegionAvail().x -
-                            ImGui::CalcTextSize("Delete Reservation?").x) * 0.5f);
-                    ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "Delete Reservation?");
-                    ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
-                    ImGui::Text("Guest:"); ImGui::SameLine();
-                    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "%s", deleteTargetName);
-                    ImGui::Spacing();
-                    ImGui::TextDisabled("This action cannot be undone.");
-                    ImGui::Spacing();
-
-                    float btnW = (ImGui::GetContentRegionAvail().x - 8.0f) * 0.5f;
-                    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
-                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
-                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
-                    if (ImGui::Button("Delete", ImVec2(btnW, 36))) {
-                        deleteReservation(deleteTargetId);
-                        if (searchResultIdx >= 0) searchResultIdx = -2;
-                        deleteTargetId = -1;
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::PopStyleColor(3);
-                    ImGui::SameLine(0, 8);
-                    if (ImGui::Button("Cancel", ImVec2(btnW, 36))) {
-                        deleteTargetId = -1;
-                        ImGui::CloseCurrentPopup();
-                    }
-                    ImGui::Spacing();
-                    ImGui::EndPopup();
-                }
-
                 ImGui::EndTable();
             }
+
+            /* Open the popup OUTSIDE the table so the ID stack is clean */
+            if (deleteTargetId != -1 && strcmp(deleteTargetName, "") != 0)
+                ImGui::OpenPopup("Confirm Delete");
+
+            /* Delete confirmation modal */
+            ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+            ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+            ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Always);
+            if (ImGui::BeginPopupModal("Confirm Delete", nullptr,
+                ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove)) {
+
+                ImGui::Spacing();
+                ImGui::SetCursorPosX(
+                    (ImGui::GetContentRegionAvail().x -
+                        ImGui::CalcTextSize("Delete Reservation?").x) * 0.5f);
+                ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "Delete Reservation?");
+                ImGui::Spacing(); ImGui::Separator(); ImGui::Spacing();
+                ImGui::Text("Guest:"); ImGui::SameLine();
+                ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "%s", deleteTargetName);
+                ImGui::Spacing();
+                ImGui::TextDisabled("This action cannot be undone.");
+                ImGui::Spacing();
+
+                float btnW = (ImGui::GetContentRegionAvail().x - 8.0f) * 0.5f;
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.08f, 0.08f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.60f, 0.12f, 0.12f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.20f, 0.05f, 0.05f, 1.0f));
+                if (ImGui::Button("Delete", ImVec2(btnW, 36))) {
+                    deleteReservation(deleteTargetId);
+                    if (searchResultIdx >= 0) searchResultIdx = -2;
+                    deleteTargetId = -1;
+                    deleteTargetName[0] = '\0';
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::PopStyleColor(3);
+                ImGui::SameLine(0, 8);
+                if (ImGui::Button("Cancel", ImVec2(btnW, 36))) {
+                    deleteTargetId = -1;
+                    deleteTargetName[0] = '\0';
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::Spacing();
+                ImGui::EndPopup();
+            }
+
             ImGui::PopStyleColor();
             ImGui::Columns(1);
             ImGui::EndTabItem();

@@ -238,12 +238,6 @@ bool renderAuthUI() {
             ImGui::InputText("##RegEmail", s_regEmail, sizeof(s_regEmail));
             ImGui::Spacing();
 
-            // Role picker
-            ImGui::TextDisabled("ROLE");
-            ImGui::RadioButton("Guest", &s_regRole, 0); ImGui::SameLine();
-            ImGui::RadioButton("Admin", &s_regRole, 1);
-            ImGui::Spacing();
-
             // Password
             ImGui::TextDisabled("PASSWORD");
             ImGui::SetNextItemWidth(-FLT_MIN - 60);
@@ -304,7 +298,7 @@ bool renderAuthUI() {
                     newAcc.lastName = s_regLast;
                     newAcc.email = s_regEmail;
                     newAcc.passwordHash = simpleHash(std::string(s_regPw));
-                    newAcc.role = (s_regRole == 1) ? UserRole::Admin : UserRole::Guest;
+                    newAcc.role = UserRole::Guest;
                     s_accounts.push_back(newAcc);
 
                     // Auto-login immediately after registration
