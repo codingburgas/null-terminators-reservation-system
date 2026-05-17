@@ -17,6 +17,12 @@ Built using a **three-tier architecture** (Presentation → Logic → Data) and 
 
 ---
 
+## 📄 Documentation
+
+[📘 documentation.docx](https://codingburgas-my.sharepoint.com/:w:/g/personal/aiivanov24_codingburgas_bg/IQB32E0v2oqzTYop3-fcxQt2AcrwaBfjgNqBx6NJeEHkQg0?e=uaMEcy)
+
+---
+
 ## 👥 Team Members & Roles
 
 | Name | Role |
