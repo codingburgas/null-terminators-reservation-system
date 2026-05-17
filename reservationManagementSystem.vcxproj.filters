@@ -17,25 +17,25 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui_demo.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui_draw.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui_impl_glfw.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui_impl_opengl3.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui_tables.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
     <ClCompile Include="libs\imGui\imgui_widgets.cpp">
-      <Filter>src</Filter>
+      <Filter>libs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -88,6 +88,9 @@
     </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{1747c7a9-320f-4d8f-a997-654fc98c5671}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libs">
+      <UniqueIdentifier>{8e11db53-4a19-476f-bbf5-741218a9e4d9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
